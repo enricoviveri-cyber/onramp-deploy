@@ -1,0 +1,44 @@
+name: Deploy Onramp to EKS
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-region: eu-west-1
+          role-to-assume: arn:aws:iam::223825590112:role/GitHubActions-Onramp-Role
+          role-session-name: GitHubOnrampDeploy
+
+      - name: Login to Amazon ECR
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build, tag & push the 8 services
+        run: |
+          cd onramp/services
+          for svc in catalog orders quotes kyc payments wallet coverage verifywallet; do
+            echo "=== Building & pushing onramp/$svc:1.0.0 ==="
+            docker build -t onramp/$svc:1.0.0 ./$svc
+            docker tag onramp/$svc:1.0.0 223825590112.dkr.ecr.eu-west-1.amazonaws.com/onramp/$svc:1.0.0
+            docker push 223825590112.dkr.ecr.eu-west-1.amazonaws.com/onramp/$svc:1.0.0
+          done
+
+      - name: Deploy everything to EKS
+        run: |
+          cd onramp
+          echo "${{ secrets.ONRAMP_ENV }}" > .env
+          chmod +x bootstrap_onramp_auth0_cloudflare.sh
+          set -a; source .env; set +a
+          ./bootstrap_onramp_auth0_cloudflare.sh
