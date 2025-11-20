@@ -1,0 +1,67 @@
+version: "3.9"
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: onramp
+      POSTGRES_USER: onramp
+      POSTGRES_PASSWORD: onramppwd
+    healthcheck: { test: ["CMD-SHELL","pg_isready -U onramp -d onramp"], interval: 5s, timeout: 3s, retries: 20 }
+    volumes:
+      - dbdata:/var/lib/postgresql/data
+
+  kong:
+    image: kong:3.6
+    ports: ["8000:8000","8001:8001"]
+    environment:
+      KONG_DATABASE: "off"
+      KONG_DECLARATIVE_CONFIG: /kong/kong.yml
+    volumes:
+      - ../../gateway/kong/kong.yml:/kong/kong.yml:ro
+    depends_on: [db]
+
+  coverage:
+    build: ../../services/coverage
+    environment: { COVERAGE_PATH: /data/coverage.json }
+    volumes:
+      - ../../data/coverage.json:/data/coverage.json:ro
+
+  verifywallet:
+    build: ../../services/verifywallet
+
+  catalog:
+    build: ../../services/catalog
+    environment:
+      CATALOG_BACKEND: postgres
+      DATABASE_URL: postgresql://onramp:onramppwd@db:5432/onramp
+      ADMIN_TOKEN: disabled-in-prod-use-oidc
+    depends_on: [db]
+
+  orders:
+    build: ../../services/orders
+    environment:
+      QUOTES_URL: http://quotes:3000
+      KYC_URL: http://kyc:3000
+      PAYMENTS_URL: http://payments:3000
+      WALLET_URL: http://wallet:3000
+      CATALOG_URL: http://catalog:3000
+      IDEMP_CACHE: postgres
+      DATABASE_URL: postgresql://onramp:onramppwd@db:5432/onramp
+      STRIPE_SECRET: sk_test_xxx
+      STRIPE_WEBHOOK_SECRET: whsec_xxx
+    depends_on: [db]
+
+  quotes:
+    build: ../../services/quotes
+
+  kyc:
+    build: ../../services/kyc
+
+  payments:
+    build: ../../services/payments
+
+  wallet:
+    build: ../../services/wallet
+
+volumes:
+  dbdata: {}

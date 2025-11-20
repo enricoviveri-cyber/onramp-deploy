@@ -1,0 +1,41 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Onramp Widget — Production</title>
+<style>body{font-family:system-ui,Arial,sans-serif;margin:20px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}.card{border:1px solid #ddd;border-radius:12px;padding:12px}.row{display:flex;gap:8px;align-items:center;justify-content:space-between}input,select{padding:8px;border:1px solid #ccc;border-radius:8px;width:100%}button{padding:8px 12px;border-radius:8px;border:1px solid #333;background:#fff;cursor:pointer}.token{display:flex;align-items:center;gap:10px}.token img{width:24px;height:24px;border-radius:12px}</style>
+</head>
+<body>
+<h1>Onramp (Prod)</h1>
+<div class="grid">
+  <div class="card">
+    <h3>Coverage</h3>
+    <div class="row">
+      <input id="search" placeholder="Search token"/>
+      <select id="network"><option value="">All</option><option>ethereum</option><option>bitcoin</option><option>solana</option></select>
+      <button onclick="load()">Search</button>
+    </div>
+    <div id="list"></div>
+  </div>
+  <div class="card">
+    <h3>Custom Tokens</h3>
+    <div class="row">
+      <input id="search2" placeholder="Search custom"/>
+      <select id="network2"><option value="">All</option><option>ethereum</option><option>bitcoin</option><option>solana</option></select>
+      <button onclick="loadCustom()">Search</button>
+    </div>
+    <div id="custom"></div>
+  </div>
+</div>
+<script>
+async function load(){
+  const qs=new URLSearchParams(), s=search.value.trim(), n=network.value; if(s) qs.set('search',s); if(n) qs.set('network',n);
+  const r=await fetch('http://localhost:8000/cryptocoverage/api/v1/public/crypto-currencies?'+qs.toString()); const d=await r.json();
+  list.innerHTML=''; (d.cryptocurrencies||[]).forEach(t=>{ const row=document.createElement('div'); row.className='row'; row.innerHTML=`<div class="token"><img src="${t.logoUrl||''}" onerror="this.style.display='none'"/><b>${t.symbol}</b> <small>${t.name}</small> <small>(${t.network})</small></div>`; list.appendChild(row); });
+}
+async function loadCustom(){
+  const qs=new URLSearchParams(), s=search2.value.trim(), n=network2.value; if(s) qs.set('search',s); if(n) qs.set('network',n);
+  const r=await fetch('http://localhost:8000/catalog/public/custom-tokens?'+qs.toString()); const d=await r.json();
+  custom.innerHTML=''; (d.tokens||[]).forEach(t=>{ const row=document.createElement('div'); row.className='row'; row.innerHTML=`<div class="token"><b>${t.symbol}</b> <small>${t.name}</small> <small>${t.network}</small> <small>€${t.priceFiat}</small> <small>Avail:${t.available}</small></div>`; custom.appendChild(row); });
+}
+load(); loadCustom();
+</script>
+</body></html>

@@ -1,0 +1,72 @@
+{
+  "version": "0.1.0",
+  "updatedAt": "2025-10-22T00:00:00Z",
+  "cryptocurrencies": [
+    {
+      "name": "Ethereum",
+      "symbol": "ETH",
+      "network": "ethereum",
+      "chainId": 1,
+      "decimals": 18,
+      "contractAddress": null,
+      "isAllowed": true,
+      "isPopular": true,
+      "logoUrl": "https://cryptologos.cc/logos/ethereum-eth-logo.png"
+    },
+    {
+      "name": "Bitcoin",
+      "symbol": "BTC",
+      "network": "bitcoin",
+      "chainId": null,
+      "decimals": 8,
+      "contractAddress": null,
+      "isAllowed": true,
+      "isPopular": true,
+      "logoUrl": "https://cryptologos.cc/logos/bitcoin-btc-logo.png"
+    },
+    {
+      "name": "Solana",
+      "symbol": "SOL",
+      "network": "solana",
+      "chainId": null,
+      "decimals": 9,
+      "contractAddress": null,
+      "isAllowed": true,
+      "isPopular": true,
+      "logoUrl": "https://cryptologos.cc/logos/solana-sol-logo.png"
+    },
+    {
+      "name": "USD Coin",
+      "symbol": "USDC",
+      "network": "ethereum",
+      "chainId": 1,
+      "decimals": 6,
+      "contractAddress": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+      "isAllowed": true,
+      "isPopular": true,
+      "logoUrl": "https://cryptologos.cc/logos/usd-coin-usdc-logo.png"
+    },
+    {
+      "name": "Tether USDt",
+      "symbol": "USDT",
+      "network": "ethereum",
+      "chainId": 1,
+      "decimals": 6,
+      "contractAddress": "0xdac17f958d2ee523a2206206994597c13d831ec7",
+      "isAllowed": true,
+      "isPopular": true,
+      "logoUrl": "https://cryptologos.cc/logos/tether-usdt-logo.png"
+    },
+    {
+      "name": "USD Coin",
+      "symbol": "USDC",
+      "network": "solana",
+      "chainId": null,
+      "decimals": 6,
+      "contractAddress": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+      "isAllowed": true,
+      "isPopular": true,
+      "logoUrl": "https://cryptologos.cc/logos/usd-coin-usdc-logo.png"
+    }
+  ]
+}

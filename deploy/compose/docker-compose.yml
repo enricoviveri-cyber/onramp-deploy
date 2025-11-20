@@ -1,0 +1,52 @@
+version: "3.9"
+services:
+  kong:
+    image: kong:3.6
+    ports: ["8000:8000","8001:8001"]
+    environment:
+      KONG_DATABASE: "off"
+      KONG_DECLARATIVE_CONFIG: /kong/kong.yml
+    volumes:
+      - ../../gateway/kong/kong.yml:/kong/kong.yml:ro
+
+  coverage:
+    build: ../../services/coverage
+    environment: { COVERAGE_PATH: /data/coverage.json }
+    volumes:
+      - ../../data/coverage.json:/data/coverage.json:ro
+
+  verifywallet:
+    build: ../../services/verifywallet
+
+  catalog:
+    build: ../../services/catalog
+    environment:
+      ADMIN_TOKEN: changeme-admin-token
+      CATALOG_BACKEND: file
+      CATALOG_PATH: /data/custom_tokens.json
+    volumes:
+      - ../../data/custom_tokens.json:/data/custom_tokens.json
+
+  orders:
+    build: ../../services/orders
+    environment:
+      QUOTES_URL: http://quotes:3000
+      KYC_URL: http://kyc:3000
+      PAYMENTS_URL: http://payments:3000
+      WALLET_URL: http://wallet:3000
+      CATALOG_URL: http://catalog:3000
+      IDEMP_CACHE: memory
+
+  quotes:
+    build: ../../services/quotes
+
+  kyc:
+    build: ../../services/kyc
+
+  payments:
+    build: ../../services/payments
+
+  wallet:
+    build: ../../services/wallet
+
+networks: { default: {} }

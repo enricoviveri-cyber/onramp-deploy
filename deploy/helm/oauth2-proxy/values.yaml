@@ -1,0 +1,15 @@
+config:
+  clientID: "SETME"
+  clientSecret: "SETME"
+  cookieSecret: "SETME_32_BYTES"
+  provider: "oidc"
+  oidcIssuerURL: "https://idp.example.com/realms/onramp"
+  emailDomains: ["*"]
+ingress:
+  enabled: true
+  hosts: ["admin.example.com"]
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/proxy-buffer-size: "16k"
+  path: /oauth2
+  pathType: Prefix

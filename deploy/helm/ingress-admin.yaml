@@ -1,0 +1,20 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: admin-auth
+  annotations:
+    nginx.ingress.kubernetes.io/auth-url: "http://oauth2-proxy.oauth2-proxy.svc.cluster.local:4180/oauth2/auth"
+    nginx.ingress.kubernetes.io/auth-signin: "https://admin.example.com/oauth2/start"
+    # Example WAF/Rate-Limit annotations placeholder (depends on your controller/cloud)
+spec:
+  rules:
+  - host: admin.example.com
+    http:
+      paths:
+      - path: /catalog/admin/
+        pathType: Prefix
+        backend:
+          service:
+            name: kong-proxy
+            port:
+              number: 80

@@ -1,0 +1,40 @@
+_format_version: "3.0"
+services:
+  - name: coverage
+    url: http://coverage:3000
+    routes:
+      - name: coverage-route
+        paths: ["/cryptocoverage"]
+        strip_path: false
+
+  - name: verifywallet
+    url: http://verifywallet:3000
+    routes:
+      - name: verifywallet-route
+        paths: ["/verify-wallet-address"]
+        strip_path: false
+
+  - name: catalog
+    url: http://catalog:3000
+    routes:
+      - name: catalog-public
+        paths: ["/catalog"]
+        strip_path: false
+
+  - name: orders
+    url: http://orders:3000
+    routes:
+      - name: orders-root
+        paths: ["/"]
+        strip_path: false
+
+  - name: quotes
+    url: http://quotes:3000
+    routes:
+      - name: quotes-root
+        paths: ["/quote"]
+        strip_path: false
+
+plugins:
+  - name: rate-limiting
+    config: { minute: 400, policy: local }
