@@ -19,7 +19,7 @@ jobs:
         uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-region: eu-west-1
-          role-to-assume: arn:aws:iam::223825590112:role/GitHubActions-Onramp-Role
+          arn:aws:iam::223825590112:role/GitHubOnRampDeploy
           role-session-name: GitHubOnrampDeploy
 
       - name: Login to Amazon ECR
