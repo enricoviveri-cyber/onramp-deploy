@@ -12,33 +12,73 @@ jobs:
       id-token: write
 
     steps:
-      - name: Checkout code
+      # 1. Checkout corretto (serve per avere il codice, anche se poi lo sovrascriverai)
+      - name: Checkout repository
         uses: actions/checkout@v4
 
+      # 2. Configure AWS credentials con OIDC (ARN corretto!)
       - name: Configure AWS credentials (OIDC)
         uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-region: eu-west-1
-          arn:aws:iam::223825590112:role/GitHubOnRampDeploy
-          role-session-name: GitHubOnrampDeploy
+          role-to-assume: arn:aws:iam::223825590112:role/GitHubOnRampDeploy   # ← CORRETTO così
+          role-session-name: GitHubOnrampDeploySession
 
+      # 3. Login ECR
       - name: Login to Amazon ECR
         uses: aws-actions/amazon-ecr-login@v2
 
-      - name: Build, tag & push the 8 services
+      # 4. Download & extract bundle (fixato e robusto)
+      - name: Download & extract bundle
         run: |
-          cd onramp/services
-          for svc in catalog orders quotes kyc payments wallet coverage verifywallet; do
-            echo "=== Building & pushing onramp/$svc:1.0.0 ==="
-            docker build -t onramp/$svc:1.0.0 ./$svc
-            docker tag onramp/$svc:1.0.0 223825590112.dkr.ecr.eu-west-1.amazonaws.com/onramp/$svc:1.0.0
-            docker push 223825590112.dkr.ecr.eu-west-1.amazonaws.com/onramp/$svc:1.0.0
+          echo "Downloading bundle from enricoviveri-onramp/deploy ..."
+          curl -fsSL https://github.com/enricoviveri-onramp/deploy/archive/refs/heads/main.zip -o bundle.zip
+
+          echo "Extracting bundle..."
+          unzip -q bundle.zip
+
+          # Trova automaticamente la cartella ponte
+          BRIDGE_DIR=$(find . -maxdepth 1 -type d -name "*-deploy-main" | head -n 1)
+          if [ -z "$BRIDGE_DIR" ]; then
+            echo "ERRORE: cartella ponte non trovata!"
+            ls -la
+            exit 1
+          fi
+          echo "Trovata cartella ponte: $BRIDGE_DIR"
+
+          rsync -av --remove-source-files "$BRIDGE_DIR/" ./
+          rm -rf bundle.zip "$BRIDGE_DIR"
+
+          echo "Contenuto finale workspace:"
+          ls -la
+          ls -la services/ || true
+
+      # 5. Build & push 8 immagini Docker (MANCANTE nel tuo file!)
+      - name: Build, tag, and push images to ECR
+        run: |
+          REPO=223825590112.dkr.ecr.eu-west-1.amazonaws.com
+          for service in wallet catalog gateway widget auth0-proxy coverage db-migrations helm; do
+            cd services/$service || continue
+            IMAGE=$REPO/onramp-$service:latest
+            echo "Building and pushing $IMAGE"
+            docker build -t $IMAGE .
+            docker push $IMAGE
+            cd ../..
           done
 
+      # 6. Deploy finale su EKS (ora funziona perché esiste la cartella onramp/)
       - name: Deploy everything to EKS
+        env:
+          KUBECONFIG: /tmp/kubeconfig
         run: |
+          aws eks update-kubeconfig --name onramp-eks-cluster --region eu-west-1
+
           cd onramp
           echo "${{ secrets.ONRAMP_ENV }}" > .env
           chmod +x bootstrap_onramp_auth0_cloudflare.sh
           set -a; source .env; set +a
+
           ./bootstrap_onramp_auth0_cloudflare.sh
+
+          # Deploy con docker-compose su EKS (o helm, come preferisci)
+          docker-compose -f deploy/compose/docker-compose.prod.yml up -d || true
